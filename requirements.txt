@@ -1,0 +1,22 @@
+# Core dependencies with compatible versions
+Flask==2.0.1
+Flask-Login==0.5.0
+Werkzeug==2.0.1
+Markdown==3.3.4
+itsdangerous==2.0.1
+Jinja2==3.0.1
+MarkupSafe==2.0.1
+click==8.0.1
+blinker==1.4
+pyngrok==5.1.0
+gunicorn==20.1.0
+requests==2.26.0
+
+# Additional dependencies
+argparse
+python-dateutil
+pytz
+
+# Optional dependencies for hosting
+# uncomment as needed
+# gevent==21.8.0

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Exam Timing</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+        }
+        .timing-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .current-config {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .example-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Admin Navigation Bar -->
+        <div class="card mb-4">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="m-0">Admin Navigation</h4>
+                    <div>
+                        <a href="/admin/monitoring" class="btn btn-outline-primary" style="margin-right: 8px;">Monitoring Dashboard</a>
+                        <a href="/admin/manage_durations" class="btn btn-outline-primary" style="margin-right: 8px;">Manage Durations</a>
+                        <a href="/admin/exam_status" class="btn btn-outline-primary" style="margin-right: 8px;">Exam Status</a>
+                        <a href="/admin/global_timing" class="btn btn-primary active">Global Timing</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h1>Global Exam Timing</h1>
+        
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <div class="alert alert-info">
+            <h5><i class="bi bi-info-circle"></i> How Global Timing Works</h5>
+            <ul class="mb-0">
+                <li><strong>All students finish at the same time</strong> - regardless of individual durations</li>
+                <li><strong>Students with extra time start earlier</strong> - they get more time but end simultaneously</li>
+                <li><strong>Login restrictions apply</strong> - students can only log in during their allowed window</li>
+                <li><strong>Example:</strong> If exam is 2:00 PM - 4:00 PM (120 min) and a student has 180 min, they can start at 1:00 PM</li>
+            </ul>
+        </div>
+
+        <!-- Current Configuration -->
+        <div class="current-config">
+            <h5>Current Configuration</h5>
+            {% if config.global_exam_start_time %}
+                <p><strong>Global Start Time:</strong> {{ config.global_exam_start_time }}</p>
+                <p><strong>Global Duration:</strong> {{ config.global_exam_duration }} minutes</p>
+                <p><strong>Global End Time:</strong> {{ config.exam_end_time }}</p>
+                <p><strong>Status:</strong> <span class="badge bg-success">Global Timing Enabled</span></p>
+            {% else %}
+                <p><strong>Status:</strong> <span class="badge bg-warning">Individual Timing Mode</span></p>
+                <p>No global exam schedule is set. Students can log in anytime and have individual timers.</p>
+            {% endif %}
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Set Global Exam Schedule</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="exam_date" class="form-label">Exam Date</label>
+                                <input type="date" id="exam_date" name="exam_date" class="form-control" 
+                                       value="{% if config.global_exam_start_time %}{{ config.global_exam_start_time[:10] }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="exam_time" class="form-label">Exam Start Time</label>
+                                <input type="time" id="exam_time" name="exam_time" class="form-control"
+                                       value="{% if config.global_exam_start_time %}{{ config.global_exam_start_time[11:16] }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="exam_duration" class="form-label">Global Duration (minutes)</label>
+                                <input type="number" id="exam_duration" name="exam_duration" class="form-control" 
+                                       value="{{ config.global_exam_duration or 120 }}" min="1" max="600">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <button type="submit" class="btn btn-primary">Set Global Timing</button>
+                        <button type="button" class="btn btn-warning" onclick="clearTiming()">Clear Global Timing</button>
+                        <a href="/admin/manage_durations" class="btn btn-secondary">Manage Individual Durations</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Example Calculation -->
+        <div class="example-box">
+            <h5><i class="bi bi-calculator"></i> Example: How Early Start Works</h5>
+            <div id="example-calculation">
+                <p>Set a global exam time above to see how students with different durations can start.</p>
+            </div>
+        </div>
+
+        <!-- Student Login Windows -->
+        {% if config.global_exam_start_time %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Student Login Windows</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Duration</th>
+                                <th>Can Start At</th>
+                                <th>Must End At</th>
+                                <th>Extra Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ config.global_exam_duration }} min (standard)</td>
+                                <td>{{ config.global_exam_start_time[11:16] }}</td>
+                                <td>{{ config.exam_end_time[11:16] }}</td>
+                                <td>0 min</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td>{{ config.global_exam_duration + 30 }} min</td>
+                                <td id="early-30"></td>
+                                <td>{{ config.exam_end_time[11:16] }}</td>
+                                <td>30 min</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td>{{ config.global_exam_duration + 60 }} min</td>
+                                <td id="early-60"></td>
+                                <td>{{ config.exam_end_time[11:16] }}</td>
+                                <td>60 min</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function clearTiming() {
+            if (confirm('Are you sure you want to clear global timing? This will switch back to individual timing mode.')) {
+                // Submit form with empty values
+                document.getElementById('exam_date').value = '';
+                document.getElementById('exam_time').value = '';
+                document.querySelector('form').submit();
+            }
+        }
+
+        function updateExample() {
+            const date = document.getElementById('exam_date').value;
+            const time = document.getElementById('exam_time').value;
+            const duration = parseInt(document.getElementById('exam_duration').value) || 120;
+            
+            if (date && time) {
+                const startTime = new Date(`${date}T${time}`);
+                const endTime = new Date(startTime.getTime() + duration * 60000);
+                
+                document.getElementById('example-calculation').innerHTML = `
+                    <p><strong>Global Exam:</strong> ${startTime.toLocaleString()} - ${endTime.toLocaleString()}</p>
+                    <p><strong>Student with 150 min:</strong> Can start at ${new Date(startTime.getTime() - 30 * 60000).toLocaleTimeString()}</p>
+                    <p><strong>Student with 180 min:</strong> Can start at ${new Date(startTime.getTime() - 60 * 60000).toLocaleTimeString()}</p>
+                `;
+                
+                // Update early start times in table
+                if (document.getElementById('early-30')) {
+                    document.getElementById('early-30').textContent = new Date(startTime.getTime() - 30 * 60000).toLocaleTimeString();
+                }
+                if (document.getElementById('early-60')) {
+                    document.getElementById('early-60').textContent = new Date(startTime.getTime() - 60 * 60000).toLocaleTimeString();
+                }
+            }
+        }
+
+        // Update example when inputs change
+        document.getElementById('exam_date').addEventListener('change', updateExample);
+        document.getElementById('exam_time').addEventListener('change', updateExample);
+        document.getElementById('exam_duration').addEventListener('change', updateExample);
+        
+        // Initial update
+        updateExample();
+    </script>
+</body>
+</html>

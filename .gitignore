@@ -1,0 +1,32 @@
+### Runtime data
+submissions/
+
+### Python virtual environments
+env/
+.venv/
+venv/
+
+### Python caches/bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+### Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+### OS / editor files
+.DS_Store
+.vscode/
+
+### Local secrets / generated user lists
+# This repo writes plain-text passwords to this CSV during signup.
+new_users.csv
+
+### Local app data/config (do not commit)
+users.json
+user.json
+exam_config.json

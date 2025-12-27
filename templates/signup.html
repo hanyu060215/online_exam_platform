@@ -1,0 +1,145 @@
+<!-- templates/signup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Python Exam Signup</title>
+    <style>
+        .signup-container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .login-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        .success-message {
+            color: green;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Python Exam Signup</h2>
+        <div class="form-group">
+            <label for="username">Email (Username):</label>
+            <input type="email" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="confirm-password">Confirm Password:</label>
+            <input type="password" id="confirm-password" name="confirm-password" required>
+        </div>
+        <button onclick="signup()">Sign Up</button>
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+        <div class="login-link">
+            <span>Already have an account? </span><a href="/login">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        async function signup() {
+            const username = document.getElementById('username').value;
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Reset messages
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Basic validation
+            if (!username || !name || !password || !confirmPassword) {
+                errorMessage.textContent = 'Please fill in all fields';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        name: name,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    successMessage.textContent = data.message || 'Account created successfully! Redirecting to login...';
+                    successMessage.style.display = 'block';
+                    
+                    // Redirect to login page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    errorMessage.textContent = data.message || 'Error creating account';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                errorMessage.textContent = 'An error occurred during signup';
+                errorMessage.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

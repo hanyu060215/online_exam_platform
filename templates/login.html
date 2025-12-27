@@ -1,0 +1,195 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Python Exam Login</title>
+    <style>
+        .login-container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .signup-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        .switch-btn {
+            width: 45%;
+            padding: 8px;
+            margin: 0 5px;
+            background-color: #f1f1f1;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .switch-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #4CAF50;
+        }
+        #admin-mode .login-container {
+            border-color: #007bff;
+        }
+        #admin-mode button {
+            background-color: #007bff;
+        }
+        #admin-mode button:hover {
+            background-color: #0056b3;
+        }
+        #admin-mode .signup-link a {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 id="login-title">Python Exam Login</h2>
+        <p id="login-switch-container" style="text-align: center; margin-bottom: 20px;">
+            <button id="student-login-btn" class="switch-btn active" onclick="switchLoginType('student')">Student</button>
+            <button id="admin-login-btn" class="switch-btn" onclick="switchLoginType('admin')">Admin</button>
+        </p>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button id="login-btn" onclick="login()">Login</button>
+        <div id="error-message" class="error-message"></div>
+        <div id="signup-link" class="signup-link">
+            <span>New student? </span><a href="/signup">Sign up here</a>
+        </div>
+    </div>
+
+    <script>
+        // Track which mode we're in (student or admin)
+        let currentLoginMode = 'student';
+        
+        // Function to switch between student and admin login modes
+        function switchLoginType(mode) {
+            currentLoginMode = mode;
+            const studentBtn = document.getElementById('student-login-btn');
+            const adminBtn = document.getElementById('admin-login-btn');
+            const loginTitle = document.getElementById('login-title');
+            const signupLink = document.getElementById('signup-link');
+            const errorMessage = document.getElementById('error-message');
+            const loginBtn = document.getElementById('login-btn');
+            
+            // Reset error message
+            errorMessage.style.display = 'none';
+            
+            if (mode === 'admin') {
+                document.body.id = 'admin-mode';
+                studentBtn.classList.remove('active');
+                adminBtn.classList.add('active');
+                loginTitle.textContent = 'Admin Login';
+                signupLink.style.display = 'none';
+                loginBtn.textContent = 'Admin Login';
+                loginBtn.style.backgroundColor = '#007bff';
+            } else {
+                document.body.id = 'student-mode';
+                adminBtn.classList.remove('active');
+                studentBtn.classList.add('active');
+                loginTitle.textContent = 'Python Exam Login';
+                signupLink.style.display = 'block';
+                loginBtn.textContent = 'Student Login';
+                loginBtn.style.backgroundColor = '#4CAF50';
+            }
+        }
+        
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const isAdmin = currentLoginMode === 'admin';
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        is_admin_login: isAdmin
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Check if user type matches login type
+                    if (data.is_admin !== isAdmin) {
+                        const errorMessage = document.getElementById('error-message');
+                        if (isAdmin) {
+                            errorMessage.textContent = 'This account does not have admin privileges.';
+                        } else {
+                            errorMessage.textContent = 'Admin accounts must use the admin login.';
+                        }
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Redirect based on user role
+                    if (data.is_admin) {
+                        window.location.href = '/admin/monitoring';
+                    } else {
+                        window.location.href = '/exam';
+                    }
+                } else {
+                    const errorMessage = document.getElementById('error-message');
+                    errorMessage.textContent = data.message || 'Invalid username or password';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = 'An error occurred during login';
+                errorMessage.style.display = 'block';
+            }
+        }
+        
+        // Initialize the login form to student mode by default
+        document.addEventListener('DOMContentLoaded', function() {
+            switchLoginType('student');
+        });
+        
+    </script>
+</body>
+</html>

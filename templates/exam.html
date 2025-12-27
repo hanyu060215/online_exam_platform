@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Python Online Exam</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- EasyMDE Markdown Editor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            max-width: none;
+        }
+        .question-panel {
+            width: 40%;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        .editor-panel {
+            width: 60%;
+            height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #2d2d2d;
+        }
+        .choices-panel {
+            width: 60%;
+            height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        .choice-item {
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        .choice-item:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .choice-item.selected {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .navigation {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+        .CodeMirror {
+            height: 100%;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid #ddd;
+        }
+        .CodeMirror-gutters {
+            width: 45px !important;
+            background-color: #f7f7f7;
+            border-right: 1px solid #ddd;
+        }
+        .CodeMirror-linenumber {
+            padding: 0 3px 0 3px;
+            min-width: 30px;
+            text-align: right;
+            color: #999;
+        }
+        .CodeMirror-lines {
+            padding: 8px 0;
+        }
+        .CodeMirror-line {
+            padding-left: 8px !important;
+        }
+        .CodeMirror pre.CodeMirror-line,
+        .CodeMirror pre.CodeMirror-line-like {
+            padding: 0 8px;
+        }
+        .CodeMirror-sizer {
+            margin-left: 45px !important;
+            border-right: 1px solid #444;
+        }
+        .CodeMirror-scroll {
+            margin-left: 0;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .markdown-body {
+            padding: 20px 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .markdown-body img {
+            max-width: 100%;
+        }
+        .progress-container {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn {
+            min-width: 100px;
+            font-weight: 500;
+        }
+        #finish-btn {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        #finish-btn:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+        #reset-btn {
+            background-color: #6c757d;
+            color: white;
+            border-color: #6c757d;
+        }
+        #reset-btn:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        .short-answer-panel {
+            width: 60%;
+            height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        #short-answer-textarea {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            resize: none;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        /* Markdown editor styles */
+        .markdown-editor-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        .EasyMDEContainer {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .EasyMDEContainer .CodeMirror {
+            flex-grow: 1;
+            height: auto;
+            min-height: 300px;
+        }
+        .editor-toolbar {
+            border-top: 2px solid #ddd;
+            border-left: 2px solid #ddd;
+            border-right: 2px solid #ddd;
+            border-radius: 8px 8px 0 0;
+        }
+        .CodeMirror {
+            border-left: 2px solid #ddd;
+            border-right: 2px solid #ddd;
+            border-bottom: 2px solid #ddd;
+            border-radius: 0 0 8px 8px;
+        }
+        .time-counter {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .time-warning {
+            color: #dc3545;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="save-indicator alert alert-success">Code saved successfully!</div>
+
+    <div class="container">
+        <div class="question-panel">
+            <div class="progress-container">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                        <div id="question-counter" class="mr-2">Question 1 of 10</div>
+                        <div class="time-counter ml-3" id="time-counter">120:00</div>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 10%"></div>
+                </div>
+                <input type="hidden" id="question-type" value="programming">
+            </div>
+            <h4 id="question-title">Question 1: Print Hello World</h4>
+            <div id="question-description" class="markdown-body"></div>
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+                <button id="reset-btn" class="btn" onclick="resetCode()" style="display: none;">Reset Code</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+                <button id="finish-btn" class="btn" onclick="finishExam()">Finish Exam</button>
+            </div>
+        </div>
+
+        <div id="programming-panel" class="editor-panel" style="display: none;">
+            <textarea id="code-editor"></textarea>
+        </div>
+        <div id="choices-panel" class="choices-panel" style="display: none;">
+            <div id="choices-container" class="flex-grow-1"></div>
+        </div>
+        <div id="short-answer-panel" class="short-answer-panel" style="display: none;">
+            <div class="markdown-editor-container">
+                <textarea id="short-answer-textarea" placeholder="Type your answer here. Use the numbered list button (1, 2, 3) to create ordered lists."></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button id="save-short-answer-btn" class="btn btn-primary" onclick="saveShortAnswer()">Save Answer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <!-- KaTeX for math rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- EasyMDE Markdown Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <!-- Marked for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/js/exam_monitor.js"></script>
+    
+    <script>
+        let currentQuestion = 'Q1';
+        let editor;
+        let totalQuestions = 0;
+        let saveTimeout = null;
+        let lastSavedCode = '';
+        let pendingChanges = false;
+        let lastAutoSaveTime = 0;
+        let currentInitialCode = '';
+        let savedAnswers = {};
+        let examDuration = 0;
+        let remainingSeconds = 0;
+        let timerInterval;
+        const AUTO_SAVE_DELAY = 2000; // 2 seconds delay
+        const MIN_SAVE_INTERVAL = 5000; // Minimum 5 seconds between saves
+
+        let programmingPanel, choicesPanel, shortAnswerPanel, resetBtn;
+        let markdownEditor;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize panel variables
+            programmingPanel = document.getElementById('programming-panel');
+            choicesPanel = document.getElementById('choices-panel');
+            shortAnswerPanel = document.getElementById('short-answer-panel');
+            resetBtn = document.getElementById('reset-btn');
+            
+            // Initialize markdown editor for short answers
+            initializeMarkdownEditor();
+
+            editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+                mode: 'python',
+                theme: 'monokai',
+                lineNumbers: true,
+                indentUnit: 4,
+                indentWithTabs: false,
+                smartIndent: true,
+                tabSize: 4,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                autofocus: true,
+                extraKeys: {
+                    "Tab": function(cm) {
+                        if (cm.somethingSelected()) {
+                            cm.indentSelection("add");
+                        } else {
+                            // Insert spaces when Tab is pressed
+                            const spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                            cm.replaceSelection(spaces, "end", "+input");
+                        }
+                    }
+                }
+            });
+
+            // Setup auto-save on content changes
+            editor.on('change', function() {
+                pendingChanges = true;
+                clearTimeout(saveTimeout);
+                
+                // Check if we just saved recently
+                const timeSinceLastSave = Date.now() - lastAutoSaveTime;
+                if (timeSinceLastSave < MIN_SAVE_INTERVAL) {
+                    // Wait longer before saving again
+                    saveTimeout = setTimeout(autoSave, MIN_SAVE_INTERVAL);
+                } else {
+                    saveTimeout = setTimeout(autoSave, AUTO_SAVE_DELAY);
+                }
+            });
+
+            // Periodic check for unsaved changes
+            setInterval(checkUnsavedChanges, 10000); // Check every 10 seconds
+
+            // Save before page unload
+            window.addEventListener('beforeunload', function(e) {
+                if (pendingChanges) {
+                    saveCode(true); // Silent save
+                }
+            });
+
+            // Initialize exam configuration and timer
+            initializeExam();
+        });
+
+        // Initialize markdown editor for short answers
+        function initializeMarkdownEditor() {
+            const textarea = document.getElementById('short-answer-textarea');
+            if (textarea) {
+                markdownEditor = new EasyMDE({
+                    element: textarea,
+                    spellChecker: false,
+                    status: false,
+                    toolbar: [
+                        'ordered-list'
+                    ],
+                    previewRender: function(plainText) {
+                        // Custom preview renderer with KaTeX support
+                        let html = marked.parse(plainText);
+                        
+                        // Render math equations
+                        html = html.replace(/\$\$([^$]+)\$\$/g, function(match, math) {
+                            try {
+                                return katex.renderToString(math, { displayMode: true });
+                            } catch (e) {
+                                return `<span style="color: red;">Math Error: ${e.message}</span>`;
+                            }
+                        });
+                        
+                        html = html.replace(/\$([^$]+)\$/g, function(match, math) {
+                            try {
+                                return katex.renderToString(math, { displayMode: false });
+                            } catch (e) {
+                                return `<span style="color: red;">Math Error: ${e.message}</span>`;
+                            }
+                        });
+                        
+                        return html;
+                    },
+                    placeholder: 'Type your answer here. Use the numbered list button (1, 2, 3) to create ordered lists.'
+                });
+                
+                // Auto-save functionality
+                markdownEditor.codemirror.on('change', function() {
+                    pendingChanges = true;
+                    clearTimeout(shortAnswerTimeout);
+                    shortAnswerTimeout = setTimeout(saveShortAnswer, AUTO_SAVE_DELAY);
+                });
+            }
+        }
+
+        // Function to check and save any pending changes
+        async function checkUnsavedChanges() {
+            // Check if there are unsaved changes and save them
+            if (pendingChanges) {
+                const currentQuestionType = document.getElementById('question-type').value;
+                
+                if (currentQuestionType === 'programming') {
+                    await saveCode(true);
+                } else if (currentQuestionType === 'multiple_choice') {
+                    // Multiple choice is saved when selected, no need to save here
+                } else if (currentQuestionType === 'short_answer') {
+                    await saveShortAnswer();
+                }
+            }
+        }
+
+        async function autoSave() {
+            // Get the current question type to ensure we're only auto-saving programming questions
+            const currentQuestionType = document.getElementById('question-type').value;
+            if (currentQuestionType === 'programming') {
+                const currentCode = editor.getValue();
+                if (currentCode !== lastSavedCode) {
+                    const saveResult = await saveCode(true); // Silent save
+                    if (saveResult) {
+                        lastAutoSaveTime = Date.now();
+                        pendingChanges = false;
+                    }
+                }
+            }
+        }
+
+        async function saveCode(silent = false) {
+            const code = editor.getValue();
+            try {
+                // Only save if code has actually changed from last save
+                if (code !== lastSavedCode) {
+                    const response = await fetch('/api/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            questionId: currentQuestion,
+                            code: code
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        lastSavedCode = code;
+                        savedAnswers[currentQuestion] = code;
+                        if (!silent) {
+                            showSaveIndicator('Code saved successfully!');
+                        }
+                        return true;
+                    } else {
+                        if (!silent) {
+                            showSaveIndicator('Failed to save code', true);
+                        }
+                        return false;
+                    }
+                } else {
+                    // Code hasn't changed, no need to save
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error saving code:', error);
+                if (!silent) {
+                    showSaveIndicator('Error saving code', true);
+                }
+                return false;
+            }
+        }
+
+        // Modified save indicator to be less intrusive for auto-saves
+        function showSaveIndicator(message, isError = false) {
+            const indicator = document.querySelector('.save-indicator');
+            indicator.textContent = message;
+            indicator.className = `save-indicator alert ${isError ? 'alert-danger' : 'alert-success'}`;
+            
+            // For auto-saves, make the indicator more subtle
+            if (!isError) {
+                indicator.style.opacity = '0.7';
+            }
+            
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, isError ? 2000 : 1000); // Show errors longer than success messages
+        }
+
+        async function initializeExam() {
+            try {
+                // Check session state first
+                const sessionResponse = await fetch('/api/session_state');
+                const data = await sessionResponse.json();
+                
+                // Load exam configuration
+                const configResponse = await fetch('/api/exam_config');
+                const config = await configResponse.json();
+                
+                if (config.status === 'success') {
+                    examDuration = config.exam_duration * 60; // Convert minutes to seconds
+                    setupTimer(examDuration);
+                }
+                
+                // Get total questions count
+                const questionsResponse = await fetch('/api/total_questions');
+                const questionsData = await questionsResponse.json();
+                totalQuestions = questionsData.total;
+                
+                // Initialize exam monitoring if we have a username
+                if (data.status === 'success' && data.username) {
+                    // Start monitoring student activity
+                    examMonitor.init(data.username);
+                    console.log('Exam monitoring initialized for:', data.username);
+                }
+                
+                // Check if there's a session to restore
+                if (data.status === 'success' && data.exam_in_progress) {
+                    // Restore the previous session if user wants to
+                    const shouldRestore = confirm(
+                        'We found your previous session. Would you like to restore it?\n\n' +
+                        'This will load your last saved answers and take you to your last question.'
+                    );
+                    
+                    if (shouldRestore) {
+                        currentQuestion = data.lastQuestion;
+                    }
+                }
+                
+                // Load the first question
+                if (totalQuestions > 0) {
+                    loadQuestion(currentQuestion);
+                    updateProgress();
+                } else {
+                    console.warn('No questions found');
+                }
+            } catch (error) {
+                console.error('Error initializing exam:', error);
+                
+                // Fallback to normal initialization
+                try {
+                    const totalResponse = await fetch('/api/total_questions');
+                    const totalData = await totalResponse.json();
+                    totalQuestions = totalData.total;
+                    if (totalQuestions > 0) {
+                        loadQuestion(currentQuestion);
+                        updateProgress();
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback initialization failed:', fallbackError);
+                    showSaveIndicator('Error initializing exam', true);
+                }
+            }
+        }
+
+        function checkRemainingTime() {
+            fetch('/api/check_time')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.examFinished) {
+                        // Auto-submit the exam and redirect to congrats page when time is up
+                        console.log('Exam time expired. Auto-submitting exam...');
+                        
+                        // Clear the timer interval to prevent multiple submissions
+                        clearInterval(timerInterval);
+                        
+                        // Disable all interactive elements to prevent further interaction
+                        disableExamInteraction();
+                        
+                        // Save any pending changes first
+                        saveCurrentQuestion().then(() => {
+                            // Then submit the exam
+                            fetch('/finish_exam', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({
+                                    auto_submitted: true
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(result => {
+                                if (result.status === 'success') {
+                                    console.log('Exam auto-submitted successfully.');
+                                    // Show a message to the user
+                                    showTimeUpMessage();
+                                    // Redirect to the congrats page after a short delay
+                                    setTimeout(() => {
+                                        window.location.href = '/exam_completed';
+                                    }, 2000);
+                                } else {
+                                    console.error('Failed to auto-submit exam:', result.message);
+                                    alert('Your exam time has expired but we encountered an error submitting your answers. Please contact the administrator.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error auto-submitting exam:', error);
+                                alert('Your exam time has expired but we encountered an error submitting your answers. Please contact the administrator.');
+                            });
+                        }).catch(error => {
+                            console.error('Error saving final answers before auto-submit:', error);
+                            // Even if saving fails, still try to submit what we have
+                            window.location.href = '/exam_finished';
+                        });
+                    } else {
+                        // Update the timer display
+                        const minutes = Math.floor(data.remainingSeconds / 60);
+                        const seconds = data.remainingSeconds % 60;
+                        const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        const timerEl = document.getElementById('time-counter');
+                        timerEl.textContent = timeStr;
+                        
+                        // Add warning class when less than 5 minutes remain
+                        if (data.remainingSeconds < 300) {
+                            timerEl.classList.add('time-warning');
+                        } else {
+                            timerEl.classList.remove('time-warning');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error checking time:', error));
+        }
+        
+        function setupTimer(duration) {
+            // Start by setting the timer display
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            document.getElementById('time-counter').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Check time every second
+            timerInterval = setInterval(checkRemainingTime, 1000);
+        }
+        
+        /**
+         * Disable all interactive elements when exam time is up
+         */
+        function disableExamInteraction() {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+            
+            // Disable CodeMirror editor if it exists
+            if (editor) {
+                editor.setOption('readOnly', true);
+            }
+            
+            // Disable multiple choice options
+            const choiceItems = document.querySelectorAll('.choice-item');
+            choiceItems.forEach(item => {
+                item.style.pointerEvents = 'none';
+                item.style.opacity = '0.7';
+            });
+            
+            // Disable short answer textarea or markdown editor
+            if (markdownEditor) {
+                markdownEditor.codemirror.setOption('readOnly', true);
+            } else {
+                const shortAnswerTextarea = document.getElementById('short-answer-textarea');
+                if (shortAnswerTextarea) {
+                    shortAnswerTextarea.disabled = true;
+                }
+            }
+        }
+        
+        /**
+         * Show a message to the user that time is up and exam is being submitted
+         */
+        function showTimeUpMessage() {
+            // Create a modal-like overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+                max-width: 500px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            `;
+            
+            messageBox.innerHTML = `
+                <h2 style="color: #dc3545; margin-bottom: 20px;">Time's Up!</h2>
+                <p style="font-size: 18px; margin-bottom: 20px;">Your exam time has expired.</p>
+                <p>Your answers are being submitted automatically.</p>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            `;
+            
+            overlay.appendChild(messageBox);
+            document.body.appendChild(overlay);
+        }
+        
+        /**
+         * Save the current question's answer before submitting the exam
+         * @returns {Promise} A promise that resolves when the save is complete
+         */
+        async function saveCurrentQuestion() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const currentQuestionType = document.getElementById('question-type').value;
+                    
+                    if (currentQuestionType === 'programming') {
+                        // Save programming code
+                        const saveResult = await saveCode(true);
+                        resolve(saveResult);
+                    } else if (currentQuestionType === 'short_answer') {
+                        // Save short answer
+                        const saveResult = await saveShortAnswer();
+                        resolve(saveResult);
+                    } else {
+                        // Multiple choice is saved when selected, no need to save here
+                        resolve(true);
+                    }
+                } catch (error) {
+                    console.error('Error saving current question:', error);
+                    // Resolve anyway to allow submission to continue
+                    resolve(false);
+                }
+            });
+        }
+
+        function updateProgress() {
+            const currentNum = parseInt(currentQuestion.slice(1));
+            const progress = (currentNum / totalQuestions) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('question-counter').textContent = `Question ${currentNum} of ${totalQuestions}`;
+            
+            // Update navigation buttons
+            const prevButton = document.querySelector('button[onclick="prevQuestion()"]');
+            const nextButton = document.querySelector('button[onclick="nextQuestion()"]');
+            prevButton.disabled = currentNum === 1;
+            nextButton.disabled = currentNum === totalQuestions;
+            
+            // Show/hide finish button
+            document.getElementById('finish-btn').style.display = 
+                (currentNum === totalQuestions) ? 'inline' : 'none';
+        }
+
+        async function loadQuestion(qId) {
+            try {
+                await checkUnsavedChanges();
+                const response = await fetch(`/api/question/${qId}`);
+                if (!response.ok) {
+                    console.error('Failed to load question');
+                    return;
+                }
+                const data = await response.json();
+                
+                currentQuestion = qId;
+                const currentNum = parseInt(currentQuestion.slice(1));
+                document.getElementById('question-title').textContent = `Question ${currentNum}: ${data.question.title}`;
+                document.getElementById('question-description').innerHTML = data.question.description;
+                
+                // Set question type
+                document.getElementById('question-type').value = data.question.type;
+                
+                // Hide all panels first
+                document.getElementById('programming-panel').style.display = 'none';
+                document.getElementById('choices-panel').style.display = 'none';
+                document.getElementById('short-answer-panel').style.display = 'none';
+                
+                // Show the appropriate panel based on question type
+                if (data.question.type === 'programming') {
+                    programmingPanel.style.display = 'flex';
+                    choicesPanel.style.display = 'none';
+                    shortAnswerPanel.style.display = 'none';
+                    resetBtn.style.display = 'block';
+                    
+                    // 保存初始代码
+                    currentInitialCode = data.question.initial_code || '';
+                    
+                    // Load saved code if exists, otherwise use initial code
+                    if (data.saved_code) {
+                        editor.setValue(data.saved_code);
+                        // Update lastSavedCode to match the loaded code
+                        lastSavedCode = data.saved_code;
+                    } else {
+                        editor.setValue(currentInitialCode);
+                        // Update lastSavedCode to match the initial code
+                        lastSavedCode = currentInitialCode;
+                    }
+                    
+                    // Clear any pending autosave for the previous question
+                    clearTimeout(saveTimeout);
+                    pendingChanges = false;
+                    
+                } else if (data.question.type === 'multiple_choice') {
+                    programmingPanel.style.display = 'none';
+                    choicesPanel.style.display = 'flex';
+                    shortAnswerPanel.style.display = 'none';
+                    resetBtn.style.display = 'none';
+                    
+                    // Clear and rebuild choices container
+                    const choicesContainer = document.getElementById('choices-container');
+                    choicesContainer.innerHTML = '';
+                    
+                    // Add choices
+                    data.question.choices.forEach((choice, index) => {
+                        const choiceItem = document.createElement('div');
+                        choiceItem.className = 'choice-item';
+                        choiceItem.textContent = `${String.fromCharCode(65 + index)}. ${choice}`;
+                        choiceItem.dataset.value = String.fromCharCode(65 + index);
+                        
+                        // Mark as selected if previously saved
+                        if (data.saved_choice && data.saved_choice === String.fromCharCode(65 + index)) {
+                            choiceItem.classList.add('selected');
+                        }
+                        
+                        choiceItem.addEventListener('click', function() {
+                            // Remove selected class from all choices
+                            document.querySelectorAll('.choice-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            
+                            // Add selected class to clicked choice
+                            this.classList.add('selected');
+                            
+                            // Save choice
+                            saveChoice(this.dataset.value);
+                        });
+                        
+                        choicesContainer.appendChild(choiceItem);
+                    });
+                    
+                } else if (data.question.type === 'short_answer') {
+                    programmingPanel.style.display = 'none';
+                    choicesPanel.style.display = 'none';
+                    shortAnswerPanel.style.display = 'flex';
+                    resetBtn.style.display = 'none';
+                    
+                    // Load saved short answer if exists
+                    if (markdownEditor) {
+                        // Use markdown editor
+                        if (data.saved_short_answer) {
+                            markdownEditor.value(data.saved_short_answer);
+                        } else {
+                            markdownEditor.value('');
+                        }
+                    } else {
+                        // Fallback to textarea
+                        const shortAnswerTextarea = document.getElementById('short-answer-textarea');
+                        if (data.saved_short_answer) {
+                            shortAnswerTextarea.value = data.saved_short_answer;
+                        } else {
+                            shortAnswerTextarea.value = '';
+                        }
+                    }
+                }
+                
+                // Update progress
+                updateProgress();
+                
+            } catch (error) {
+                console.error('Error loading question:', error);
+                showSaveIndicator('Error loading question', true);
+            }
+        }
+        
+        async function saveChoice(choice) {
+            try {
+                const response = await fetch('/api/save_choice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        questionId: currentQuestion,
+                        choice: choice
+                    })
+                });
+                
+                if (response.ok) {
+                    showSaveIndicator('Choice saved successfully!');
+                } else {
+                    showSaveIndicator('Failed to save choice', true);
+                }
+            } catch (error) {
+                console.error('Error saving choice:', error);
+                showSaveIndicator('Error saving choice', true);
+            }
+        }
+        
+        async function saveShortAnswer() {
+            // Get answer from markdown editor if available, otherwise fallback to textarea
+            const answer = markdownEditor ? markdownEditor.value() : document.getElementById('short-answer-textarea').value;
+            try {
+                const response = await fetch('/api/save_short_answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        questionId: currentQuestion,
+                        answer: answer
+                    })
+                });
+                
+                if (response.ok) {
+                    showSaveIndicator('Answer saved successfully!');
+                    pendingChanges = false;
+                } else {
+                    showSaveIndicator('Failed to save answer', true);
+                }
+            } catch (error) {
+                console.error('Error saving short answer:', error);
+                showSaveIndicator('Error saving answer', true);
+            }
+        }
+        
+        let shortAnswerTimeout;
+        
+        function resetCode() {
+            // Temporarily pause monitoring to prevent false positive
+            const wasMonitoringActive = window.examMonitor && window.examMonitor.monitoringActive;
+            
+            // Pause monitoring if it's active
+            if (wasMonitoringActive) {
+                window.examMonitor.monitoringActive = false;
+            }
+            
+            if (confirm('Are you sure you want to reset your code to the initial state?')) {
+                editor.setValue(currentInitialCode);
+                lastSavedCode = currentInitialCode;
+                pendingChanges = false;  // 重置后不需要保存
+                showSaveIndicator('Code reset to initial state');
+            }
+            
+            // Resume monitoring after a short delay to ensure dialog interactions are complete
+            if (wasMonitoringActive) {
+                setTimeout(() => {
+                    window.examMonitor.monitoringActive = true;
+                }, 500);
+            }
+        }
+        
+        async function prevQuestion() {
+            const currentNum = parseInt(currentQuestion.slice(1));
+            if (currentNum > 1) {
+                try {
+                    await checkUnsavedChanges();
+                    currentQuestion = `Q${currentNum - 1}`;
+                    await loadQuestion(currentQuestion);
+                } catch (error) {
+                    console.error('Error navigating to previous question:', error);
+                    showSaveIndicator('Error navigating to previous question', true);
+                }
+            }
+        }
+
+        async function nextQuestion() {
+            const currentNum = parseInt(currentQuestion.slice(1));
+            if (currentNum < totalQuestions) {
+                try {
+                    await checkUnsavedChanges();
+                    currentQuestion = `Q${currentNum + 1}`;
+                    await loadQuestion(currentQuestion);
+                } catch (error) {
+                    console.error('Error navigating to next question:', error);
+                    showSaveIndicator('Error navigating to next question', true);
+                }
+            }
+        }
+
+        async function finishExam() {
+            if (confirm('Are you sure you want to finish the exam? Make sure all your answers are saved.')) {
+                try {
+                    // Save the last question first
+                    await checkUnsavedChanges();
+
+                    // Stop the monitoring
+                    if (window.examMonitor) {
+                        window.examMonitor.stop();
+                    }
+
+                    // Submit the exam
+                    const response = await fetch('/finish_exam', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        // Show success message
+                        showSaveIndicator(result.message || 'Exam submitted successfully!', false);
+                        
+                        // Stop the timer
+                        clearInterval(timerInterval);
+                        
+                        // Wait for 2 seconds to show the success message before redirecting
+                        setTimeout(() => {
+                            window.location.href = '/exam/summary';
+                        }, 2000);
+                    } else {
+                        // Show error message
+                        showSaveIndicator(result.message || 'Failed to submit exam. Please try again.', true);
+                    }
+                } catch (error) {
+                    showSaveIndicator('An error occurred while submitting the exam. Please try again.', true);
+                    console.error('Error submitting exam:', error);
+                }
+            }
+        }
+
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' && e.altKey) {
+                prevQuestion();
+            } else if (e.key === 'ArrowRight' && e.altKey) {
+                nextQuestion();
+            }
+        });
+    </script>
+</body>
+</html>

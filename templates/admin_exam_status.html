@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Timing Status</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .status-active {
+            color: #28a745;
+        }
+        .status-inactive {
+            color: #6c757d;
+        }
+        .status-finished {
+            color: #dc3545;
+        }
+        .refresh-button {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Admin Navigation Bar -->
+        <div class="card mb-4">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="m-0">Admin Navigation</h4>
+                    <div>
+                        <a href="/admin/monitoring" class="btn btn-outline-primary" style="margin-right: 8px;">Monitoring Dashboard</a>
+                        <a href="/admin/manage_durations" class="btn btn-outline-primary" style="margin-right: 8px;">Manage Durations</a>
+                        <a href="/admin/exam_status" class="btn btn-primary active" style="margin-right: 8px;">Exam Status</a>
+                        <a href="/admin/global_timing" class="btn btn-outline-primary">Global Timing</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Student Exam Timing Status</h1>
+            <button id="refreshButton" class="btn btn-primary refresh-button" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+        
+        <div class="alert alert-info mb-4">
+            <h5><i class="bi bi-info-circle"></i> Individual Student Timing</h5>
+            <p class="mb-0">
+                Each student has their own independent exam timer. Giving one student more time does NOT prevent other students from logging in or taking their exam.
+                Students can start their exams at different times, and each will have their own countdown based on their individual duration setting.
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">All Students</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Name</th>
+                                <th>Exam Duration</th>
+                                <th>Status</th>
+                                <th>Start Time</th>
+                                <th>Remaining Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.username }}</td>
+                                <td>{{ student.name }}</td>
+                                <td>{{ student.exam_duration }} minutes</td>
+                                <td>
+                                    {% if student.is_active %}
+                                        {% if student.exam_finished %}
+                                            <span class="status-finished">
+                                                <i class="bi bi-check-circle"></i> Finished
+                                            </span>
+                                        {% else %}
+                                            <span class="status-active">
+                                                <i class="bi bi-play-circle"></i> Active
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="status-inactive">
+                                            <i class="bi bi-pause-circle"></i> Not Started
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.exam_start_time %}
+                                        {{ student.exam_start_time }}
+                                    {% else %}
+                                        <span class="text-muted">Not started</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.remaining_time %}
+                                        {{ student.remaining_time }}
+                                    {% elif student.exam_finished %}
+                                        <span class="text-danger">Finished</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ student.exam_duration }} minutes available</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h5>How to Give Students More Time:</h5>
+            <ol>
+                <li>Go to <a href="/admin/manage_durations">Manage Durations</a></li>
+                <li>Set the desired duration for the specific student</li>
+                <li>Click "Save Changes"</li>
+                <li>The change will apply to that student's exam timer only</li>
+                <li>Other students are completely unaffected</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

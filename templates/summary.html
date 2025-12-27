@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Summary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 40px 0;
+        }
+        .summary-card {
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .status-icon {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+        .status-saved {
+            color: #198754;
+        }
+        .status-unsaved {
+            color: #dc3545;
+        }
+        .btn-return {
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card summary-card">
+            <div class="card-header bg-primary text-white py-3">
+                <h2 class="mb-0">Exam Summary</h2>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Question</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in questions %}
+                        <tr>
+                            <td class="ps-4">
+                                <strong>Question {{ loop.index }}</strong>
+                            </td>
+                            <td>
+                                {% if question.id not in unsaved_questions %}
+                                <span class="status-icon status-saved">✓</span> Saved
+                                {% else %}
+                                <span class="status-icon status-unsaved">✗</span> Not Saved
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                {% if question.id in unsaved_questions %}
+                                <a href="/exam#{{ question.id }}" class="btn btn-danger btn-sm">Complete Answer</a>
+                                {% else %}
+                                <button class="btn btn-success btn-sm" disabled>Completed</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-white p-4">
+                {% if unsaved_questions %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-danger">
+                        <strong>⚠️ Some questions are not saved</strong>
+                        <p class="mb-0">Please complete all questions before submitting.</p>
+                    </div>
+                    <a href="/exam" class="btn btn-primary btn-return">Return to Exam</a>
+                </div>
+                {% else %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-success">
+                        <strong>✓ All questions completed!</strong>
+                        <p class="mb-0">You can now submit your exam.</p>
+                    </div>
+                    <form action="/finish_exam" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-success btn-return">Submit Exam</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
